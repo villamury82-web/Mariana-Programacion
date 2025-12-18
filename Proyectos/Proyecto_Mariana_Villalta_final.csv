@@ -1,0 +1,135 @@
+import pandas as pd
+
+# 1. Módulo de Base de Datos (Diccionario de Diccionarios)
+# Estructura: {Año: {Tipo_AC: Cantidad}}
+historial_ac = {
+    2022: {"no_significativa": 15, "significativa": 5, "acceso": 10},
+    2023: {"no_significativa": 18, "significativa": 6, "acceso": 12},
+    2024: {"no_significativa": 20, "significativa": 8, "acceso": 15}
+}
+
+# 2. Funciones para Análisis Descriptivo
+def analizar_datos(datos_historicos):
+    print("--- Análisis Descriptivo ---")
+    ultimo_año = max(datos_historicos.keys())
+    detalles = datos_historicos[ultimo_año]
+    
+    # Uso de listas y procesamiento de listas
+    cantidades = list(detalles.values())
+    tipos = list(detalles.keys())
+    
+    total_casos = sum(cantidades) # Operación básica
+    
+    # Encontrar la Moda (Tipo más frecuente)
+    max_valor = max(cantidades)
+    indice_moda = cantidades.index(max_valor)
+    moda_tipo = tipos[indice_moda]
+    
+    return total_casos, moda_tipo, ultimo_año
+
+# 3. Módulo Predictivo (Cálculo de Proyección N+1)
+def proyectar_siguiente_año(datos_historicos):
+    años = sorted(datos_historicos.keys())
+    totales_por_año = []
+    
+    # Bucle para procesar el diccionario
+    for año in años:
+        total = sum(datos_historicos[año].values())
+        totales_por_año.append(total)
+    
+    # Cálculo de crecimiento anual (Operaciones matemáticas)
+    crecimientos = []
+    for i in range(1, len(totales_por_año)):
+        crecimiento = totales_por_año[i] - totales_por_año[i-1]
+        crecimientos.append(crecimiento)
+    
+    promedio_crecimiento = sum(crecimientos) / len(crecimientos)
+    proyeccion = totales_por_año[-1] + promedio_crecimiento
+    
+    return round(proyeccion)
+
+# --- Ejecución Principal (Entrada y Salida) ---
+print("SISTEMA DE ANÁLISIS PREDICTIVO DE AC")
+print("====================================")
+
+# Conversión a DataFrame para procesamiento avanzado
+df_historico = pd.DataFrame(historial_ac).T
+print("\nVista de Base de Datos (DataFrame):")
+print(df_historico)
+
+# Llamada a funciones
+total, moda, año_act = analizar_datos(historial_ac)
+proyeccion_final = proyectar_siguiente_año(historial_ac)
+
+# Condicionales y Valores Booleanos
+necesita_mas_personal = proyeccion_final > (total * 1.10) # Si crece más del 10%
+
+# Salida de resultados
+print(f"\nResultados del año {año_act}:")
+print(f"- Total de estudiantes con AC: {total}")
+print(f"- Tipo de adecuación más frecuente (Moda): {moda}")
+print(f"\nPROYECCIÓN PARA EL AÑO {año_act + 1}:")
+print(f"- Casos estimados: {proyeccion_final}")
+
+if necesita_mas_personal:
+    print("ALERTA: Se recomienda la contratación de personal de apoyo extra.")
+else:
+    print("ESTADO: El personal actual es suficiente para la demanda proyectada.")
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 1. Módulo de Base de Datos (Diccionario Anidado)
+historial_ac = {
+    2022: {"no_significativa": 15, "significativa": 5, "acceso": 10},
+    2023: {"no_significativa": 18, "significativa": 6, "acceso": 12},
+    2024: {"no_significativa": 20, "significativa": 8, "acceso": 15}
+}
+
+# 2. Módulo de Análisis y Proyección
+def obtener_metricas(datos):
+    df = pd.DataFrame(datos).T
+    ultimo_año = df.index[-1]
+    total_actual = df.loc[ultimo_año].sum()
+    
+    # Cálculo de proyección simple (Crecimiento promedio)
+    totales = df.sum(axis=1)
+    crecimiento_promedio = totales.diff().mean()
+    proyeccion = totales.iloc[-1] + crecimiento_promedio
+    
+    return df, ultimo_año, total_actual, round(proyeccion)
+
+# 3. NUEVO: Módulo de Visualización
+def graficar_datos(df, año_actual, proyeccion):
+    # Extraer datos del último año para el gráfico
+    datos_actuales = df.loc[año_actual]
+    
+    plt.figure(figsize=(10, 6))
+    
+    # Crear barras para los tipos de AC actuales
+    colores = ['#4CAF50', '#FF9800', '#2196F3']
+    barras = plt.bar(datos_actuales.index, datos_actuales.values, color=colores, label='Datos Actuales')
+    
+    # Agregar una barra especial para la Proyección Total
+    plt.bar(['PROYECCIÓN TOTAL'], [proyeccion], color='red', alpha=0.5, label='Estimado N+1')
+    
+    # Configuración de etiquetas y títulos
+    plt.title(f'Analizador de Adecuaciones Curriculares - {año_actual} vs Proyección', fontsize=14)
+    plt.xlabel('Categoría de Adecuación / Proyección', fontsize=12)
+    plt.ylabel('Cantidad de Estudiantes', fontsize=12)
+    plt.legend()
+    
+    # Añadir etiquetas de valor sobre las barras
+    for bar in plt.gca().containers:
+        plt.bar_label(bar, padding=3)
+
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.show()
+
+# --- Ejecución ---
+df_hist, año, total, proy = obtener_metricas(historial_ac)
+
+print(f"Año actual: {año} | Total: {total}")
+print(f"Proyección estimada para {año + 1}: {proy} casos.")
+
+# Llamada al gráfico
+graficar_datos(df_hist, año, proy)
